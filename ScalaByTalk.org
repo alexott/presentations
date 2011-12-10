@@ -410,7 +410,7 @@ JDEE -- хотя и не развивается в последнее время
  - REPL
  - Отладчик
 
-** Emacs для программистов: IDE-related
+** Emacs для программистов: IDE-related                              :export:
    :PROPERTIES:
    :BEAMER_env: frame
    :BEAMER_envargs: [t]
