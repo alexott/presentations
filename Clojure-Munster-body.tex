@@ -1,0 +1,1000 @@
+\mode<presentation> {
+% \usetheme{JuanLesPins}
+  \usetheme{Madrid}
+%  \usetheme{Rochester}
+  \setbeamercovered{transparent}
+%\usefonttheme[onlylarge]{structuresmallcapsserif}
+\usefonttheme[onlysmall]{structurebold}
+}
+
+%\usepackage[a4paper,hmargin={2.5cm,2cm},vmargin={2cm,2cm},nohead,twoside]{geometry}
+\usepackage{mathtext}
+\usepackage{ucs}
+\usepackage[utf8x]{inputenc}
+\usepackage[T2A]{fontenc}
+\usepackage[english]{babel}
+\hypersetup{unicode,colorlinks=true,bookmarks}
+
+\usepackage{listings}
+\input{clojure-def}
+
+%http://old.nabble.com/latex-beamer-users-f4031.html
+
+\title{Clojure}
+\subtitle{A small introduction}
+\author{Alex Ott}
+\institute[\lstinline!alexott@gmail.com!]{\url{http://alexott.net}}
+\date{Münster JUG, July 2010}
+
+\begin{document}
+
+\selectlanguage{english}
+
+\frame{\titlepage
+}
+
+\begin{frame}[t]
+  \frametitle{About me...}
+  \begin{itemize}
+  \item Professional software developer \& architect
+  \item Working with different programming languages -- C/C++, Lisps, Haskell, Erlang, ...
+  \item About 20 years of Lisp experience, including commercial projects
+  \item Development on Unix/Linux platforms
+  \item Author of articles on programming (including Clojure), Emacs, etc.
+  \item Participate in many open source projects, including Incanter, labrepl, etc.
+  \item Maintainer of ``Planet Clojure''
+  \end{itemize}
+  \note{First, I want to say several words about myself. My name is Alex
+    Ott. I'm professional software developer \& architect, although physicist by
+    education. Last 10 years I worked in content security branch, and now
+    working in McAfee, as Sr. Developer.
+
+    I'm using many languages in my work, some for prototypes, some for
+    production. 
+
+    I mostly working on Unix-like platforms -- Linux, Mac OS X, etc.
+
+    I've used Java starting from version 1.0, and periodically until 2005th
+
+    I participate in many open source projects, including clojure-related. I'm
+    also author of many articles.  }
+\end{frame}
+
+
+\begin{frame}[t]
+\frametitle{Outline}
+\tableofcontents
+\note{ So, what we'll talk about:
+
+  In first part I'll speak about why new language was created, its features, and
+  differences from other Lisp dialects.
+
+  Second part will provide introduction into syntax of language
+
+  In third part I'll describe interoperability questions -- how to call Java
+  methods, how to create Java objects, etc.  I should to mention, that we could
+  use not only JVM, but also .Net, in Clojure.Net version (beta now)
+
+  In forth part we'll look onto concurrent programming, and which Clojure's
+  features are used for it
+
+  And in last parts, we'll look onto real-life questions -- infrastructure \&
+  tools, sources of informations, look onto some examples, etc.  }
+\end{frame}
+
+\section{What is Clojure?}
+
+\begin{frame}[t]
+  \frametitle{What is  Clojure?}
+  \begin{columns}
+    \begin{column}{0.7\textwidth}
+  \begin{itemize}
+  \item Lisp-like language, created by Rich Hickey and announced in 2007th
+  \item Designed to work on existing platforms
+  \item Functional programming language, with immutable data
+  \item Special features for concurrent programming
+  \item Open sourced with liberal license
+  \item Already used in many projects, including commercial
+  \end{itemize}
+    \end{column}
+    \begin{column}{0.3\textwidth}
+      \begin{center}
+        \pgfimage[width=2.5cm]{images/clojure}
+      \end{center}
+    \end{column}
+  \end{columns}
+  \note{JVM (and .Net) was selected because these platforms have very good
+    garbage collectors, support JIT-compilation, etc. Plus, for these platforms
+    we have access to big number of existing libraries.  And usage of given
+    platform is often customer's requirement!  
+
+    Functional languages -- easy to reason about programs, easy to test.  First class
+    functions.  Functions free from side-effects and always produce same result.
+    Side-effect-free function is possible to execute in parallel automatically.
+
+}
+\end{frame}
+
+%TODO: add slide 'Why functional programming'?
+
+\begin{frame}[t]
+  \frametitle{Why new language?}
+  \begin{columns}
+    \begin{column}{0.75\textwidth}
+  \begin{itemize}
+  \item Lisp, but without compatibility with previous versions
+  \item Immutable data and more support for pure functional programming comparing with
+    other Lisps
+  \item Support for concurrent programing inside language
+  \item Better integration with target platforms: JVM~\&~.Net
+  \end{itemize}
+    \end{column}
+    \begin{column}{0.25\textwidth}
+      \begin{center}
+        \pgfimage[width=2.5cm]{images/question4}
+      \end{center}
+    \end{column}
+  \end{columns}
+
+\note{
+Existing Lisps maintains compatibility with standards (and previous
+versions), so we couldn't introduce breaking changes for them
+
+Common Lisp and Scheme are imperative languages with some functional parts
+
+To make proper concurrency support, it's better to introduce it in
+language, not library, level.
+
+Transparent integration with target platforms is very important. Existing
+JVM support in other languages is often mimic Java....
+
+}
+
+\end{frame}
+
+% ???
+\begin{frame}[t]
+  \frametitle{Main features}
+  \begin{itemize}
+  \item Dynamically typed language
+  \item Very simple syntax, like in other Lisps (code as data)
+  \item Support for interactive development
+  \item Designed in terms of abstractions
+  \item Metaprogramming
+  \item Multimethods and protocols (in version 1.2)
+  \item Compiled into byte code of target platforms
+  \item Access to big number of available libraries
+  \end{itemize}
+\note{
+
+  Interactive development -- REPL, define functions on the fly, load and
+  compile code in runtime. Data introspection.
+
+  Metaprogramming allows to build DSL that will compiled into effective
+  code.
+
+  Older Lisps were more close to machine.  Clojure provides abstractions
+  for many things -- collections, threads, etc.  This allows to provide
+  uniform interfaces with less operations.
+
+}
+\end{frame}
+
+
+\begin{frame}[t]
+  \frametitle{Differences from other Lisps}
+  \begin{itemize}
+  \item Changes in syntax, less parentheses
+  \item Changes in naming
+  \item More first-class data structures -- maps, sets, vectors
+  \item Immutable, by default, data
+  \item Ability to link meta-information with variables and functions
+  \item ``Lazy'' collections
+  \item There is no reader macros
+  \item Case-sensitive names
+  \item Lack of tail call optimization (JVM's limitation) -- explicit loops \texttt{loop/recur}
+  \item Exceptions instead of signals and restarts
+  \end{itemize}
+  \note{
+
+    Mention, that Clojure is Lisp-1, without separate namespaces for variable,
+    functions, etc.}
+\end{frame}
+
+
+\section{Language basics}
+
+\begin{frame}[t]
+  \frametitle{Base data types}
+  \begin{itemize}
+  \item Integer numbers of any size -- \texttt{14235344564564564564}
+  \item Rational numbers -- \texttt{26/7}
+  \item Real numbers -- \texttt{1.2345} and BigDecimals -- \texttt{1.2345M}
+  \item Strings (\texttt{String} class from Java) -- \texttt{"hello world"}
+  \item Characters (\texttt{Character} from Java) -- \texttt{$\backslash{}$a}, \texttt{$\backslash{}$b}, \ldots{}
+  \item Regular expressions -- \texttt{\#"[abc]*"}
+  \item Boolean -- \texttt{true} \& \texttt{false}
+  \item \texttt{nil} -- the same as \texttt{null} in Java, not an empty list as in Lisp
+  \item Symbols -- \texttt{test}, \texttt{var1}, \ldots{}
+  \item Keywords -- \texttt{:test}, \texttt{:hello}, \ldots{}
+  \end{itemize}
+\note{discuss each type...}
+\end{frame}
+
+\begin{frame}[t,fragile]
+  \frametitle{Data structures}
+  \begin{itemize}
+  \item Separate syntax for different collections:
+    \begin{itemize}
+    \item Lists -- \texttt{(1 2 3 "abc")}
+    \item Vectors -- \texttt{[1 2 3 "abc"]}
+    \item Maps -- \lstinline!{:key1 1234 :key2 "value"}!
+    \item Sets -- \lstinline!#{:val1 "text" 1 2 10}!
+    \end{itemize}
+  \item Sequence -- abstraction to work with all collections (including classes from
+    Java/.Net)
+  \item Common set of functions to work with sequences
+  \item Lazy operations on sequences
+  \item Vectors, maps, and sets are functions -- to simplify access to data in them
+  \item Persistent collections
+  \item Transient collections -- performance optimization
+  \item \texttt{defstruct} -- optimization of map to work with complex data structures
+  \end{itemize}
+  \note{
+
+    Because all data is immutable, all functions should return new object.  But in
+    Clojure, like in other functional languages, data isn't copied completely, but parts
+    of them are shared when modified copy is created.  Mention ``Purely functional data
+    structures book'' when speaking about persistent data structures.
+
+    \texttt{defstruct} is used to optimize performance, when you use many maps
+    with similar structures.  But structure isn't fixed!
+
+}
+\end{frame}
+
+\begin{frame}[t]
+  \frametitle{Syntax}
+  \begin{itemize}
+  \item Very simple, homoiconic syntax  -- program is usual data structure
+  \item Special procedure (reader) process text and produce data structures
+  \item All objects represent themselves except symbols and lists
+  \item Symbols link value with ``variable''
+  \item Lists represent forms, that could be:
+    \begin{itemize}
+    \item Special form -- \texttt{def}, \texttt{let}, \texttt{if}, \texttt{loop}, \ldots{}
+    \item Macros
+    \item Function call or expression, that could be used as function\\
+      (maps, keywords, returned functional values, \ldots{})
+    \end{itemize}
+  \item To get list as-is you need to ``quote'' it (with \texttt{quote} or \lstinline|'|)
+  \end{itemize}
+  \note{Special form is a form, where normal arguments evaluation order isn't
+    working.}
+\end{frame}
+
+\begin{frame}[fragile,fragile]
+  \frametitle{Code example}
+\begin{lstlisting}
+(defn fibo
+  ([] (concat [1 1] (fibo 1 1)))
+  ([a b]
+     (let [n (+ a b)]
+       (lazy-seq (cons n (fibo b n))))))
+(take 100000000 (fibo))
+
+(defn vrange2 [n]
+  (loop [i 0 
+         v (transient [])]
+    (if (< i n)
+      (recur (inc i) (conj! v i))
+      (persistent! v))))
+\end{lstlisting}
+\note{go through code}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Life cycle of Clojure program}
+  \begin{itemize}
+  \item Code is read from file, or REPL, or from other code
+  \item Reader transforms program into data structures
+  \item Macros are expanded
+  \item Resulting code is evaluated/compiled
+  \item Produced bytecode is executed by JVM
+  \end{itemize}
+  \begin{center}
+  \pgfimage[width=8cm]{images/Clojure-Lifecycle}
+  \end{center}
+\note{To proper understand how Clojure code is processed, let look on
+  following picture:
+
+You can see, that code could be received from different sources, then it
+processed by reader procedure, that converts it into data structures, that
+will compiled into bytecode (after macro expansion)
+
+This scheme differs from traditional Java approach -- Edit/Compile/Pack/Run
+
+}
+\end{frame}
+
+\begin{frame}[t,fragile]
+  \frametitle{Functions}
+  \begin{itemize}
+  \item Functions are first-class objects
+  \item Function can have variable number of arguments % см. предыдущий слайд, функция fib
+  \item Function's definition: \lstinline!defn! -- top-level functions, \lstinline!fn! --
+    anonymous functions
+  \item Simplified syntax for anonymous functions -- \lstinline!#(code)!. For example:\\
+    \lstinline!(map #(.toUpperCase %) ["test" "hello"])!\\
+    \lstinline!(map #(vector %1 %2) [1 2 3] [4 5 6])!
+  \item You can specify tests \& pre/post-conditions.  For example,
+\begin{lstlisting}
+(defn constrained-sqr [x]
+  {:pre  [(pos? x)] :post [(> % 16), (< % 225)]}
+  (* x x))
+\end{lstlisting}
+  \item Each function is compiled into separate Java class
+  \item Each function implements Runnable interface
+  \end{itemize}
+\note{
+
+  First-class objects means, that you can accept functions as arguments, and return them
+  as result of other functions
+
+  Some objects are also working as functions -- keywords, maps/vectors/sets...
+
+  Implementation of Runnable interface means, that you can run any function as separate
+  thread.
+
+}
+\end{frame}
+
+\begin{frame}[t,fragile]
+  \frametitle{Metaprogramming \& macros}
+  \begin{itemize}
+  \item Macros receives source code and returns new code, that will compiled
+  \item Big part of language is written using macros
+  \item Variable number of arguments (same as functions)
+  \item Code could be generated with list functions, but it's much handy to use
+    quasi-quote -- \lstinline!`! and substitution operators -- \lstinline!~! and
+    \lstinline!~@!
+  \item The \lstinline!#! suffix in names is used to generate unique names
+  \item \texttt{macroexpand-1} \& \texttt{macroexpand} are used to debug macros
+  \end{itemize}
+  \note{\lstinline!`! also "normalizes" symbols -- make them fully-qualified
+
+    Show difference between 'tilda' \& 'tilda at'example 
+
+}
+\end{frame}
+
+\begin{frame}[fragile,t]
+  \frametitle{Macros examples (1)}
+The standard macros \texttt{when}:
+\begin{lstlisting}
+(defmacro when
+  [test & body]
+  (list 'if test (cons 'do body)))  
+\end{lstlisting}
+when used as:
+\begin{lstlisting}
+(when (pos? a) 
+   (println "positive") (/ b a))
+\end{lstlisting}
+will expanded into:
+\begin{lstlisting}
+(if (pos? a) 
+  (do 
+    (println "positive") 
+    (/ b a)))
+\end{lstlisting}
+\note{go through example}
+\end{frame}
+
+\begin{frame}[fragile,t]
+  \frametitle{Macros examples (2)}
+The standard macros \texttt{and}
+\begin{lstlisting}
+(defmacro and
+  ([] true)
+  ([x] x)
+  ([x & next]
+   `(let [and# ~x]
+      (if and# (and ~@next) and#))))  
+\end{lstlisting}
+will expanded into different code, depending on number of arguments:
+\begin{lstlisting}
+user> (macroexpand '(and ))        ==> true
+user> (macroexpand '(and (= 1 2))) ==> (= 1 2)
+user> (macroexpand '(and (= 1 2) (= 3 3))) ==>
+(let* [and__4457__auto__ (= 1 2)] 
+  (if and__4457__auto__ 
+     (clojure.core/and (= 3 3)) 
+     and__4457__auto__))
+\end{lstlisting}
+\note{go through example}
+\end{frame}
+
+\begin{frame}[fragile,t]
+  \frametitle{Polymorphism \& multimethods}
+  \begin{itemize}
+  \item Extensibility
+  \item Multimethods aren't bound exclusively to types/classes
+  \item Dispatching is performed using results of user-specified dispatch function
+  \item Dispatching on several parameters
+  \item Differs from CLOS -- absence of \texttt{:before}, \texttt{:after}, \ldots{}
+  \item \texttt{defmulti} -- is analog of \texttt{defgeneric} in Common Lisp
+  \item Defined as \lstinline!(defmulti func-name dispatch-fn)! + set of implementations
+    (via \texttt{defmethod})
+  \item You can also define hierarchical relationships with \texttt{derive}, and use them
+    in dispatch (via \texttt{isa?})
+  \end{itemize}
+  \note{
+
+    Although, Clojure doesn't support object hierarchies, you anyway can build
+    hierarchical relationships with (derive child parent). Child and parent can be either
+    symbols or keywords, and must be namespace-qualified.
+
+    \texttt{isa?} also tests for class relationships - the same with
+    \texttt{parents}/\texttt{ancestors}
+
+    Say about new library, that also allows to emulate \texttt{:before}, ... in
+    CLOS 
+
+}
+\end{frame}
+
+\begin{frame}[fragile,t]
+  \frametitle{Multimethods examples (1)}
+Simple dispatching using data type/class:
+\begin{lstlisting}
+(defmulti m-example class)
+(defmethod m-example String [this]
+  (println "This is string '" this "'"))
+(defmethod m-example java.util.Collection [this]
+  (print "This is collection!"))
+\end{lstlisting}
+and we'll get:
+\begin{lstlisting}
+(m-example "Hello") ==> "This is string 'Hello'"
+(m-example [1 2 3]) ==> "This is collection!"
+(m-example '(1 2 3)) ==> "This is collection!"
+\end{lstlisting}
+\note{go through example}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Multimethods examples (2)}
+\begin{lstlisting}
+(defmulti encounter 
+     (fn [x y] [(:Species x) (:Species y)]))
+(defmethod encounter [:Bunny :Lion] [b l] :run-away)
+(defmethod encounter [:Lion :Bunny] [l b] :eat)
+(defmethod encounter [:Lion :Lion] [l1 l2] :fight)
+(defmethod encounter [:Bunny :Bunny] [b1 b2] :mate)
+(def b1 {:Species :Bunny})
+(def b2 {:Species :Bunny})
+(def l1 {:Species :Lion})
+(def l2 {:Species :Lion})
+
+(encounter b1 b2) ==> :mate
+(encounter b1 l1) ==> :run-away
+(encounter l1 b1) ==> :eat
+(encounter l1 l2) ==> :fight
+\end{lstlisting}
+  \note{More complex example of dispatching on several arguments}
+\end{frame}
+
+
+\begin{frame}[t]
+  \frametitle{Protocols \& Datatypes}
+  \begin{itemize}
+  \item Introduced in version 1.2 (will released shortly)
+  \item Much faster than multimethods
+  \item Allows to write ``Clojure in Clojure''
+  \item Dispatching is done only on data types
+  \item Similar to type classes in Haskell
+  \item Java interface is created for each protocol
+  \item \texttt{defrecord} \& \texttt{deftype} define new data types
+  \item \texttt{extend-protocol} \& \texttt{extend-type} bind protocol(s) with data types
+    (not only with defined in Clojure!)
+  \item \texttt{reify} is used to implement protocols and interfaces for ``once-used
+    types''
+  \end{itemize}
+\note{...}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Protocol's examples}
+\begin{lstlisting}
+(defprotocol Hello "Test of protocol"
+  (hello [this] "hello function"))
+
+(defrecord B [name] Hello
+  (hello [this] (str "Hello " (:name this) "!")))
+(hello (B. "User")) ==> "Hello User!"
+
+(extend-protocol Hello String
+              (hello [this] (str "Hello " this "!")))
+(hello "world") ==> "Hello world!"
+
+(extend-protocol Hello java.lang.Object
+              (hello [this] (str "Hello '" this 
+                     "'! (" (type this) ")")))
+(hello 1) ==> "Hello '1'! (class java.lang.Integer)"
+\end{lstlisting}
+\note{discuss example}
+\end{frame}
+
+\begin{frame}[fragile,t]
+  \frametitle{Miscellaneous}
+  \begin{itemize}
+  \item Metadata -- \lstinline!#^{}! in 1.0 \& 1.1, or simply \lstinline!^{}! in~1.2
+    \begin{itemize}
+    \item Optional type specification (type hints) -- \lstinline!#^Type! or \lstinline!^Type!
+    \item You can specify tests directly in function's declaration
+    \item Scope management
+    \item Access and change of metadata from code
+    \item Don't change value equality
+    \end{itemize}
+  \item Namespaces:
+    \begin{itemize}
+    \item are first-class objects
+    \item are used to organize code into libraries
+    \end{itemize}
+  \item Data destructuring (function arguments, etc.)
+\begin{lstlisting}
+(let [[a b & c :as e] [1 2 3 4]] [a b c e]) 
+   ==> [1 2 (3 4) [1 2 3 4]]
+(let [{:keys [a b c] :as m :or {b 3}} {:a 5 :c 6}]
+  [a b c m]) ==> [5 3 6 {:a 5 :c 6}]
+\end{lstlisting}
+  \end{itemize}
+\note{not so much time}
+\end{frame}
+
+%TODO: написать во что компилируется кложурный код....
+
+\section{Interoperability with Java}
+
+\begin{frame}[t]
+  \frametitle{Interoperability with Java}
+  \begin{itemize}
+  \item Two-way interoperability with target platform:
+    \begin{itemize}
+    \item Creation of instances  -- \texttt{new} or \texttt{Class.}
+    \item Call of Java methods -- \texttt{.}, \texttt{..}, \texttt{doto}
+    \item Class \& interface generation -- \texttt{gen-class}, \texttt{gen-interface}, or
+      \texttt{proxy} (anonymous class)
+    \end{itemize}
+  \item You can execute Clojure code in Java programs
+  \item Separate functions to work with Java arrays:
+    \begin{itemize}
+    \item \texttt{make-array} -- array creation
+    \item \texttt{aget}/\texttt{aset} -- access to array's elements
+    \item \texttt{amap}/\texttt{areduce} -- iteration over array's elements
+    \end{itemize}
+  \item \texttt{memfn} allows to use Java methods as arguments of \texttt{map},
+    \texttt{filter}, etc.
+  \item The \texttt{set!} special form to set values inside class
+  \item Generation and catch of exception -- \texttt{throw} \& \texttt{catch}
+  \end{itemize}
+  \note{
+
+    The main forms are \texttt{.} and \texttt{new}, all other things just a
+    syntactic sugar...  
+
+}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{Interoperability examples}
+  \begin{itemize}
+  \item Instance creation:
+\begin{lstlisting}
+(new java.util.Date) <==> (java.util.Date.)
+\end{lstlisting}
+  \item Call of Java methods and access to data:
+\begin{lstlisting}
+(.substring "Hello World" 0 5) ==> "Hello"
+(. "Hello World" substring 0 5) ==> "Hello"
+Math/PI  ==> 3.141592653589793
+(Integer/parseInt "42") ==> 42
+\end{lstlisting}
+  \item \texttt{..} is used to chained calls:
+\begin{lstlisting}
+(.. System getProperties (get "os.name")) ==> "Mac OS X"
+System.getProperties().get("os.name")
+\end{lstlisting}
+  \item \texttt{doto} -- call of several methods for one object:
+\begin{lstlisting}
+(doto (java.util.HashMap.)
+ (.put "a" 1) (.put "b" 2))
+\end{lstlisting}
+  \end{itemize}
+  \note{
+
+    In chained call example: ``Who told, that Lisp has more parentheses as
+    Java?'' ;-)
+
+}
+\end{frame}
+
+% \begin{frame}
+%   \frametitle{Генерация классов}
+%TODO: gen-class, gen-interface, proxy - когда что используется
+%TODO: add example of generated class? or just use proxy example?
+% \end{frame}
+
+\section{Concurrent programming}
+
+\begin{frame}[t,fragile]
+  \frametitle{Concurrent programming}
+  \begin{itemize}
+  \item Special language features, that provides data mutation:
+    \begin{itemize}
+    \item Refs -- synchronous, coordinated change
+    \item Agents -- asynchronous, not coordinated
+    \item Atoms -- synchronous, not coordinated
+    \item Vars -- local for current thread
+    \item \lstinline|@| (\texttt{deref}) is used to get access to data
+    \end{itemize}
+  \item Parallel code execution
+    \begin{itemize}
+    \item \texttt{future}
+    \item \texttt{pmap}, \texttt{pvalues} \& \texttt{pcalls}
+    \item Native threads
+    \end{itemize}
+  \item Synchronization with \texttt{promise}
+  \end{itemize}
+\note{just high level overview}
+\end{frame}
+
+\begin{frame}[t]
+  \frametitle{State and Identity}
+  \begin{itemize}
+  \item Clojure separates concepts of state and identity
+  \item State (value) isn't changed!
+  \item More information at \url{http://clojure.org/state}
+  \end{itemize}
+
+  \begin{center}
+  \pgfimage[width=7cm]{images/Clojure-State-Identity}
+  \end{center}
+
+  \note{Clojure separates concepts of state of the object, and it's identity.
+    State is an actual value of object, while Identity is a ``name'' (or
+    reference) to actual data.  Separation of these concepts simplify
+    understanding of how Clojure works in part of mutable data.
+
+    As you can see from diagram, if we have a mutable object (ref/agent/atom),
+    then different parts of code, could have access to different values
+    (states), although all of them are working with the same variable (identity)
+  }
+\end{frame}
+
+\begin{frame}[fragile,t]
+  \frametitle{Refs \& STM}
+  \begin{itemize}
+  \item Coordinated change of data from several threads
+  \item Software Transaction Memory provides atomicity, consistency, and isolation
+  \item Changes could be made only inside transaction
+  \item You can add function for data validation
+  \item Ability to add watcher function
+  \end{itemize}
+\begin{lstlisting}
+(def counters (ref {}))
+(defn get-counter [key]
+  (@counters key 0))
+(defn increment-counter [key]
+  (dosync
+   (alter counters assoc key 
+          (inc (@counters key 0)))))
+\end{lstlisting}
+\note{more discussion here}
+\end{frame}
+
+\begin{frame}[fragile,t]
+  \frametitle{Agents}
+  \begin{itemize}
+  \item Asynchronous change of data -- ``fire and forget''
+  \item Thread pools for data update functions: \texttt{send} -- for
+    ``fast'' functions, and \texttt{send-off} -- for ``heavyweight'' functions
+    (separate thread pool)
+  \item \texttt{send} \& \texttt{send-off} get function that will applied to agent's
+    current state
+  \item Validators and watchers
+  \item You can wait until finish of all updates
+  \end{itemize}
+\begin{lstlisting}
+(def acounters (agent {}))
+(defn increment-acounter [key]
+  (send acounters assoc key 
+        (inc (@counters key 0))))
+(defn get-acounter [key]
+  (@acounters key 0))
+\end{lstlisting}
+\note{say about thread pools, etc.}
+\end{frame}
+
+\begin{frame}[t,fragile]
+  \frametitle{Vars \& Atoms}
+  \begin{itemize}
+  \item Atoms
+    \begin{itemize}
+    \item Synchronous data change without coordination
+    \item Data are changed by applying function to current state of atom
+    \item Function could be called several times
+    \item Function shouldn't have side effects!
+    \end{itemize}
+  \item Vars
+    \begin{itemize}
+    \item Provide data change only in current thread
+    \item \texttt{binding} links new values with symbols
+    \item Change affects all functions, called from current thread
+    \item Be careful with lazy sequences!
+    \end{itemize}
+\begin{lstlisting}
+(def *var* 5)
+(defn foo [] *var*)
+(foo) ==> 5
+(binding [*var* 10] (foo)) ==> 10
+\end{lstlisting}
+  \end{itemize}
+\note{not so much time here}
+\end{frame}
+
+\begin{frame}[t,fragile]
+  \frametitle{Parallel code execution}
+  \begin{itemize}
+  \item \texttt{future}
+    \begin{itemize}
+    \item executes given code in separate thread
+    \item \lstinline|@| is used to get results of code execution
+    \item \lstinline|@| blocks current thread, if results aren't available yet
+    \item results of code execution are cached
+    \end{itemize}
+  \item \texttt{promise}
+    \begin{itemize}
+    \item is used for synchronization between parts of programs
+    \item \texttt{deliver} sets value of \texttt{promise}
+    \item \lstinline|@| reads value, or blocks execution if value isn't set yet
+    \end{itemize}
+  \item \texttt{pmap}, \texttt{pvalues} \& \texttt{pcalls} are used for
+    ``heavyweight'' operations, that could be performed in parallel
+  \end{itemize}
+  \note{
+
+    Code, executed in future is evaluated only once, after finishing results are
+    cached and accessible for any number of times}
+\end{frame}
+
+\section{Clojure in real life}
+
+\begin{frame}[t]
+  \frametitle{Clojure in real life}
+  \begin{itemize}
+  \item Existing infrastructure:
+    \begin{itemize}
+    \item IDEs
+    \item Build tools
+    \item Debugging and related tools
+    \item Libraries
+    \item Code repositories
+    \end{itemize}
+  \item Clojure/core -- commercial support \& consulting
+  \item Clojure is used in commercial projects since 2008
+  \item Sources of information
+  \end{itemize}
+\note{not so much time here}
+\end{frame}
+
+\begin{frame}[t]
+  \frametitle{Infrastructure: IDEs and build tools}
+  \begin{itemize}
+  \item Supported by most of popular IDEs:
+  \begin{itemize}
+  \item Emacs + SLIME (most popular now)
+  \item VimClojure
+  \item NetBeans
+  \item Eclipse
+  \item IntelliJ IDEA
+  \end{itemize}
+  \item Build tools:
+    \begin{itemize}
+    \item Clojure support in Maven, Ant and Gradle
+    \item Leiningen -- written in Clojure, extensible and very simple
+    \end{itemize}
+  \end{itemize}
+\note{go through each option...
+
+say, that VimClojure author is here
+}
+\end{frame}
+
+\begin{frame}[t]
+  \frametitle{Infrastructure: libraries \& repositories}
+  \begin{itemize}
+  \item Simple access to big number of existing Java libraries
+  \item Clojure-specific libraries:
+    \begin{itemize}
+    \item Clojure-Contrib -- ``semi-standard'' libraries
+    \item Compojure, Ring, Scriptjure -- Web development
+    \item ClojureQL -- databases
+    \item Incanter -- R-like environment and libraries
+    \item other -- see at \url{http://clojars.org}
+    \end{itemize}
+  \item Repositories:
+    \begin{itemize}
+    \item build.clojure.org
+    \item clojars.org
+    \end{itemize}
+  \end{itemize}
+\note{say more about libraries}
+\end{frame}
+
+\begin{frame}[t]
+  \frametitle{Commercial projects}
+  \begin{itemize}
+    \item FlightCaster -- machine learning, etc.
+    \item Relevance, Inc. -- consulting
+    \item Runa -- marketing services
+    \item Sonian Networks -- archiving solutions
+    \item BackType -- social media analytics
+    \item DRW Trading Group -- trading and finance
+    \item DocuHarvest project by Snowtide Informatics Systems, Inc.
+    \item ThorTech Solutions -- scalable, mission-critical solutions
+    \item TheDeadline project by freiheit.com (\url{http://www.freiheit.com/})
+    \item and many more\ldots{}
+  \end{itemize}
+\note{...}
+\end{frame}
+
+\section{Sources of information}
+
+\begin{frame}[t,fragile]
+  \frametitle{Sources of information (1)}
+  \begin{itemize}
+  \item Main sites:
+    \begin{itemize}
+    \item Site of the language -- \url{http://clojure.org}
+    \item Planet Clojure -- \url{http://planet.clojure.in}
+    \item the \lstinline|#clojure| IRC channel at freenode.net
+    \item The labrepl project (\url{http://github.com/relevance/labrepl}) -- learning
+      environment
+    \item Try-Clojure (\url{http://www.try-clojure.org/}) -- you can execute Clojure code via Web-browser
+    \item \url{http://clojuredocs.org/} -- documentation and examples
+    \end{itemize}
+  \item German resources:
+    \begin{itemize}
+    \item Book in German will released in 2010 fall (\url{http://www.clojure-buch.de/})
+    \item clojure-de mailing list (\url{http://groups.google.com/group/clojure-de})
+    \item videos about Clojure in German (\url{http://www.rheinjug.de/videos/gse.lectures.app/Talk.html#Clojure})
+    \end{itemize}
+  \end{itemize}
+\note{
+
+Mention Concur.next blog series ? }
+\end{frame}
+
+\begin{frame}[t]
+  \frametitle{Sources of information (2)}
+  \begin{itemize}
+  \item Books:
+    \begin{itemize}
+    \item Programming Clojure -- 2009th, Clojure v. 1.0
+    \item Practical Clojure. The Definitive Guide -- 2010th, Clojure, v. 1.2
+    \item The Joy of Clojure (beta)
+    \item Clojure in Action (beta)
+    \item Clojure Programming on Wikibooks
+    \item Clojure Notes on RubyLearning
+    \end{itemize}
+  \item Video-lectures \& screencasts 
+  \item Clojure user groups around the world
+  \item Clojure study courses (on-site in USA \& Europe, or online)
+  \end{itemize}
+  \note{
+
+    Say, that ``Practical Clojure'' is better than ``Programming Clojure'',
+    because it describes version 1.2 and has better description of STM, etc.
+
+    List of video-lectures \& screencasts you can find on my site
+
+}
+\end{frame}
+
+\section{Examples}
+
+\begin{frame}[t, fragile]
+  \frametitle{Examples. Hadoop}
+  \begin{itemize}
+  \item Hadoop word count example is only lines of code (using clojure-hadoop), instead
+    dozens for Java...
+  \item All low-level details are handled by macros
+\begin{lstlisting}
+(ns clojure-hadoop.examples.wordcount3
+  (:import (java.util StringTokenizer)))
+
+(defn my-map [key value]
+  (map (fn [token] [token 1])
+       (enumeration-seq (StringTokenizer. value))))
+
+(defn my-reduce [key values-fn]
+  [[key (reduce + (values-fn))]])
+\end{lstlisting}
+  \end{itemize}
+\note{
+
+you can get very concise code when using macros...
+
+}
+\end{frame}
+
+\begin{frame}[t,fragile]
+  \frametitle{Examples. Cascalog}
+  \begin{itemize}
+  \item Domain specific language to query data in Hadoop with joins, aggregates, custom
+    operations, subqueries, etc.
+  \item Interactive work with data, using Clojure
+  \item Available from \url{http://github.com/nathanmarz/cascalog}
+  \item Example: query for persons younger than 30:
+\begin{lstlisting}
+(?<- (stdout) [?person ?age] (age ?person ?age)
+               (< ?age 30))
+\end{lstlisting}
+  \end{itemize}
+\note{this package could be used as example of DSL}
+\end{frame}
+
+\begin{frame}[t,fragile]
+  \frametitle{Examples. Concurrency}
+Ants:
+  \begin{itemize}
+  \item 320 lines of code, with commentaries and documentation
+  \item Massive parallel execution without explicit threading
+  \item Many independent objects
+  \item Graphical interface
+  \end{itemize}
+
+Cluster analysis with K-means algorithm:
+\begin{itemize}
+\item Each cluster represented by agent
+\item Automatically uses all available cores
+\item \url{http://www.informatik.uni-ulm.de/ni/staff/HKestler/Reisensburg2009/talks/kraus.pdf}
+\end{itemize}
+\note{
+
+Show ants in action...
+
+Say not so much about second part
+
+}
+
+\end{frame}
+
+\begin{frame}
+  \frametitle{Thank you}
+  \begin{columns}
+    \begin{column}{0.65\textwidth}
+\raggedleft       \Huge{\textbf{Questions}} 
+    \end{column}
+    \begin{column}{0.35\textwidth}
+      \pgfimage[width=3cm]{images/question3}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\end{document}
+
+% LocalWords:  Lisp transients screencasts Incanter Erlang labrepl Multimethods
+% LocalWords:  persistent Net Java sets TODO atoms agents refs vars futures STM
+% LocalWords:  pmap pcalls Native threads promise Interoperability namespaces
+% LocalWords:  destructuring BigDecimals multimethods Metadata metadata IDEs
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: "Clojure-Munster-slides"
+%%% End: 
+
+% LocalWords:  Metaprogramming bytecode JVM REPL

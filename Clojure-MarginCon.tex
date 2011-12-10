@@ -1,0 +1,746 @@
+\documentclass[ignorenonframetext]{beamer}
+
+\mode<presentation> {
+% \usetheme{JuanLesPins}
+  \usetheme{Madrid}
+%  \usetheme{Rochester}
+  \setbeamercovered{transparent}
+%\usefonttheme[onlylarge]{structuresmallcapsserif}
+\usefonttheme[onlysmall]{structurebold}
+}
+
+%\usepackage[a4paper,hmargin={2.5cm,2cm},vmargin={2cm,2cm},nohead,twoside]{geometry}
+\usepackage{mathtext}
+\usepackage{ucs}
+\usepackage[utf8x]{inputenc}
+\usepackage[T2A]{fontenc}
+\usepackage[russian,english]{babel}
+\hypersetup{unicode,colorlinks=true,bookmarks}
+
+\usepackage{listings}
+\input{clojure-def}
+\lstset{lang=clojure}
+
+%TODO: подобрать шрифт для листингов
+\lstnewenvironment{clojure}[1][]{%
+	\lstset{language=clojure,literate=,#1}}
+	{}
+
+
+\title{Язык Clojure}
+\subtitle{Небольшое введение}
+\author{Alex Ott}
+\institute[\lstinline!alexott@gmail.com!]{\url{http://alexott.net}}
+\date{MarginCon 2010}
+
+\begin{document}
+
+\selectlanguage{russian}
+
+Это презентация о Clojure для MarginCon\ldots{}
+
+\frame{\titlepage
+}
+
+Представиться, рассказать немного о себе....
+
+\begin{frame}[t]
+\frametitle{О чем пойдет речь?}
+\tableofcontents
+\end{frame}
+
+\begin{itemize}
+\item В первой части я расскажу о причинах создания нового языка программирования, о его
+  возможностях и отличиях от других диалектов Lisp.
+\item Вторая часть будет посвящена знакомству с основами языка и его синтаксисом
+\item В третьей части будут рассмотрены вопросы взаимодействия с кодом на Java.  Хотя
+  стоит отметить, что такое взаимодействие может происходить не только с Java, но и кодом
+  для .Net, если используется версия Clojure.Net (сейчас находится в стадии разработки)
+\item Четвертая часть будет посвящена рассмотрению подходов к конкуррентному программированию
+\item И в последних двух частях мы быстро рассмотрим инфраструктурные вопросы и то, какие
+  источники информации могут быть полезными при работе с языком....
+\end{itemize}
+
+
+\section{Что такое Clojure?}
+
+\begin{frame}[t]
+  \frametitle{Что такое Clojure?}
+  \begin{columns}
+    \begin{column}{0.7\textwidth}
+  \begin{itemize}
+  \item Lisp'ообразный язык, созданный Rich Hickey.  Анонсирован в 2007-м году.
+  \item Спроектирован для работы на существующих платформах -- JVM и .Net (в разработке)
+  \item Функциональный язык с неизменяемыми, по умолчанию, данными
+  \item Упор на поддержку конкурентного выполнения кода
+  \item Открытый исходный код и либеральная лицензия
+  \end{itemize}
+    \end{column}
+    \begin{column}{0.3\textwidth}
+      \begin{center}
+        \pgfimage[width=2.5cm]{images/clojure}
+      \end{center}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+JVM (и .Net) были выбраны в качестве целевых платформ поскольку имеют хорошо проработанные
+сборщики мусора, JIT-компиляцию и т.п.  Еще одним плюсом является наличие большого объема
+библиотек, разработанных для этих платформ, которые доступны для программистов на
+Clojure.  Кроме того, выбор платформы часто диктуется заказчиком ПО.
+
+\begin{frame}[t]
+  \frametitle{Причины создания нового языка}
+  \begin{columns}
+    \begin{column}{0.75\textwidth}
+  \begin{itemize}
+  \item Lisp, но не отягощенный совместимостью с предыдущими версиями/диалектами
+  \item Неизменяемость данных и больший упор на ФП
+  \item Поддержка конкурентного программирования на уровне языка
+  \item Лучшая интеграция с целевыми платформами по сравнению с прямым переносом
+    существующих языков
+  \end{itemize}
+    \end{column}
+    \begin{column}{0.25\textwidth}
+      \begin{center}
+        \pgfimage[width=2.5cm]{images/question4}
+      \end{center}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% ???
+\begin{frame}[t]
+  \frametitle{Основные возможности}
+  \begin{itemize}
+  \item Динамически-типизированный язык
+  \item Простой синтаксис, как у всех Lisp'ов
+  \item Поддержка интерактивной разработки
+  \item Спроектирован в терминах абстракций
+  \item Метапрограммирование
+  \item Мультиметоды и протоколы (версия 1.2)
+  \item Компилируется в байт-код целевых платформ
+  \item Доступ к большому количеству существующих библиотек
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}[t]
+  \frametitle{Отличия от других Лиспов}
+  \begin{itemize}
+  \item Измененный синтаксис, с меньшим кол-вом скобок
+  \item Изменения в наименовании
+  \item Больше first-class структур данных -- отображения (map), наборы (set), вектора
+  \item Неизменяемые, по умолчанию, данные
+  \item Связывание мета-данных с переменными и функциями
+  \item Ленивые коллекции
+  \item Нет поддержки макросов для процедуры чтения
+  \item Регистро-зависимые имена
+  \item Отсутствие tail call optimization (ограничение JVM) -- явные циклы \texttt{loop/recur}
+  \item Исключения вместо сигналов и рестартов
+  \end{itemize}
+\end{frame}
+
+
+\section{Основы языка}
+
+\begin{frame}[t]
+  \frametitle{Базовые типы данных}
+  \begin{itemize}
+  \item Целые числа произвольного размера -- \texttt{14235344564564564564}
+  \item Рациональные числа -- \texttt{26/7}
+  \item Вещественные числа -- \texttt{1.2345} и BigDecimals -- \texttt{1.2345M}
+  \item Строки (String из Java) -- \texttt{"hello world"}
+  \item Буквы (Character в Java) -- \texttt{$\backslash{}$a}, \texttt{$\backslash{}$b}, \ldots{}
+  \item Регулярные выражения -- \texttt{\#"[abc]*"}
+  \item Boolean -- \texttt{true} и \texttt{false}
+  \item \texttt{nil} -- также как \texttt{null} в Java, не является пустым списком как в Lisp
+  \item Символы (symbol) -- \texttt{test}, \texttt{var1}, \ldots{}
+  \item Ключевые символы (keywords) -- \texttt{:test}, \texttt{:hello}, \ldots{}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[t,fragile]
+  \frametitle{Структуры данных}
+  \begin{itemize}
+  \item Отдельный синтаксис для разных коллекций:
+    \begin{itemize}
+    \item Списки -- \texttt{(1 2 3 "abc")}
+    \item Вектора -- \texttt{[1 2 3 "abc"]}
+    \item Отображения (maps) -- \lstinline!{:key1 1234 :key2 "value"}!
+    \item Наборы (sets) -- \lstinline!#{:val1 "text" 1 2 10}!
+    \end{itemize}
+  \item Последовательность -- абстракция для работы со всеми коллекциями (в том числе и
+    классов Java/.Net)
+  \item Общая библиотека функций для работы с последовательностями
+  \item Ленивые операции над последовательностями
+  \item Вектора, отображения, наборы сами являются функциями -- упрощение доступа к данным
+  \item Стабильные (persistent) коллекции
+  \item ``Переходные'' (transients) коллекции -- оптимизация производительности
+  \item \texttt{defstruct} -- оптимизация отображений для объявления сложных структур
+  \end{itemize}
+\end{frame}
+
+\texttt{defstruct} используется для оптимизации производительности, если вы создаете
+большое количество отображений с одинаковой структурой...
+
+\begin{frame}[t]
+  \frametitle{Синтаксис языка}
+  \begin{itemize}
+  \item Простой синтаксис -- программа как структуры данных
+  \item Процедура чтения (reader) преобразует программу в структуры данных
+  \item Все объекты представляют сами себя за исключением символов и списков
+  \item Символы связывают значение с ``переменной''
+  \item Списки рассматриваются как формы, которые могут быть:
+    \begin{itemize}
+    \item Специальной формой -- \texttt{def}, \texttt{let}, \texttt{if}, \texttt{loop}, \ldots{}
+    \item Макросом
+    \item Функцией, или выражением, которое приводится к функции (maps, keywords, \ldots{})
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+Специальные формы -- формы в которых не работает стандартный порядок вычисления аргументов.
+
+\begin{frame}[fragile,fragile]
+  \frametitle{Пример кода}
+\begin{lstlisting}
+(defn fibo
+  ([] (concat [1 1] (fibo 1 1)))
+  ([a b]
+     (let [n (+ a b)]
+       (lazy-seq (cons n (fibo b n))))))
+(take 100000000 (fibo))
+
+(defn vrange2 [n]
+  (loop [i 0 
+         v (transient [])]
+    (if (< i n)
+      (recur (inc i) (conj! v i))
+      (persistent! v))))
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[t,fragile]
+  \frametitle{Функции}
+  \begin{itemize}
+  \item Функции как first-class objects
+  \item Возможность разного кол-ва аргументов в функциях % см. предыдущий слайд, функция fib
+  \item Определение функций: \lstinline!defn! -- top-level функции, \lstinline!fn! --
+    анонимные функции
+  \item Упрощенный синтаксис для анонимных функций -- \lstinline!#(code)!. Например:\\
+    \lstinline!(map #(.toUpperCase %) ["test" "hello"])!\\
+    \lstinline!(map #(vector %1 %2) [1 2 3] [4 5 6])!
+  \item Возможность задания тестов и pre/post-условий в метаданных. Например,
+\begin{lstlisting}
+(defn constrained-sqr [x]
+  {:pre  [(pos? x)] :post [(> % 16), (< % 225)]}
+  (* x x))
+\end{lstlisting}
+  \item Функция компилируется в отдельный класс Java
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[t,fragile]
+  \frametitle{Метапрограммирование и макросы}
+  \begin{itemize}
+  \item Макрос получает на вход код и возвращает новый код, который будет откомпилирован
+  \item Очень большая часть языка написана с помощью макросов
+  \item Также как и функции, могут иметь переменной число аргументов
+  \item Код можно генерировать с помощью функций для работы со списками, но удобней
+    пользоваться quasi-quote -- \lstinline!`! и операторами подстановки -- \lstinline!~! и
+    \lstinline!~@! % -- показать разницу на следующих двух примерах
+  \item Суффикс \lstinline!#! в именах используется для генерации уникальных имен
+  \item \texttt{macroexpand-1} \& \texttt{macroexpand} -- средства отладки
+  \end{itemize}
+\end{frame}
+
+\lstinline!`! также "нормализует" символы -- делает их fully-qualified
+
+\begin{frame}[fragile,t]
+  \frametitle{Примеры макросов}
+Стандартный макрос \texttt{when}:
+\begin{lstlisting}
+(defmacro when
+  [test & body]
+  (list 'if test (cons 'do body)))  
+\end{lstlisting}
+при следующем использовании
+\begin{lstlisting}
+(when (pos? a) 
+   (println "positive") (/ b a))
+\end{lstlisting}
+раскроется в:
+\begin{lstlisting}
+(if (pos? a) 
+  (do 
+    (println "positive") 
+    (/ b a)))
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile,t]
+  \frametitle{Примеры макросов}
+Стандартный макрос \texttt{and}
+\begin{lstlisting}
+(defmacro and
+  ([] true)
+  ([x] x)
+  ([x & next]
+   `(let [and# ~x]
+      (if and# (and ~@next) and#))))  
+\end{lstlisting}
+раскрывается в разные формы, в зависимости от числа аргументов:
+\begin{lstlisting}
+user> (macroexpand '(and ))        ==> true
+user> (macroexpand '(and (= 1 2))) ==> (= 1 2)
+user> (macroexpand '(and (= 1 2) (= 3 3))) ==>
+(let* [and__4457__auto__ (= 1 2)] 
+  (if and__4457__auto__ 
+     (clojure.core/and (= 3 3)) 
+     and__4457__auto__))
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Полиморфизм и мультиметоды}
+  \begin{itemize}
+  \item Расширяемость
+  \item Мультиметоды не привязаны к типам/классам
+  \item Диспатчеризация на основании нескольких параметров
+  \item Решение принимается на основании результата функции диспатчеризации
+  \item Отличается от CLOS -- отсутствие \texttt{:before}, \texttt{:after}, \ldots{}
+  \item \texttt{defmulti} -- аналог \texttt{defgeneric}.
+  \item Определяется как \lstinline!(defmulti func-name dispatch-fn)! + набор определений
+    конкретных методов (через \texttt{defmethod})
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile,t]
+  \frametitle{Пример мультиметодов}
+Простой пример диспатчеризации по классу:
+\begin{lstlisting}
+(defmulti m-example class)
+(defmethod m-example String [this]
+  (println "This is string '" this "'"))
+(defmethod m-example java.util.Collection [this]
+  (print "This is collection!"))
+\end{lstlisting}
+и получим при запуске:
+\begin{lstlisting}
+(m-example "Hello") ==> "This is string 'Hello'"
+(m-example [1 2 3]) ==> "This is collection!"
+(m-example '(1 2 3)) ==> "This is collection!"
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Более сложный пример диспатчеризации}
+\begin{lstlisting}
+(defmulti encounter 
+     (fn [x y] [(:Species x) (:Species y)]))
+(defmethod encounter [:Bunny :Lion] [b l] :run-away)
+(defmethod encounter [:Lion :Bunny] [l b] :eat)
+(defmethod encounter [:Lion :Lion] [l1 l2] :fight)
+(defmethod encounter [:Bunny :Bunny] [b1 b2] :mate)
+(def b1 {:Species :Bunny})
+(def b2 {:Species :Bunny})
+(def l1 {:Species :Lion})
+(def l2 {:Species :Lion})
+
+(encounter b1 b2) ==> :mate
+(encounter b1 l1) ==> :run-away
+(encounter l1 b1) ==> :eat
+(encounter l1 l2) ==> :fight
+\end{lstlisting}
+\end{frame}
+
+
+\begin{frame}[t]
+  \frametitle{Протоколы и типы данных}
+  \begin{itemize}
+  \item Введены в версии 1.2
+  \item Быстрее чем мультиметоды
+  \item Позволяют написать Clojure in Clojure
+  \item Диспатчеризация только по типу данных
+  \item Похожи на type classes в Haskell
+  \item Создают соответствующие интерфейсы для Java
+  \item \texttt{defrecord} \& \texttt{deftype} объявляют новые типы данных
+  \item \texttt{extend-protocol} \& \texttt{extend-type} связывают протокол с типами
+    данных (не только объявленными в Clojure!)
+  \item \texttt{reify} -- для реализации протоколов и интерфейсов для ``одноразовых'' типов
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Пример протоколов}
+\begin{lstlisting}
+(defprotocol Hello "Test of protocol"
+  (hello [this] "hello function"))
+
+(defrecord B [name] Hello
+  (hello [this] (str "Hello " (:name this) "!")))
+(hello (B. "User")) ==> "Hello User!"
+
+(extend-protocol Hello String
+              (hello [this] (str "Hello " this "!")))
+(hello "world") ==> "Hello world!"
+
+(extend-protocol Hello java.lang.Object
+              (hello [this] (str "Hello '" this 
+                     "'! (" (type this) ")")))
+(hello 1) ==> "Hello '1'! (class java.lang.Integer)"
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile,t]
+  \frametitle{Прочее}
+  \begin{itemize}
+  \item Метаданные -- \lstinline!#^{}! в 1.0 и 1.1 или просто \lstinline!^{}! в 1.2
+    \begin{itemize}
+    \item Опциональная спецификация типов (type hints) -- \lstinline!#^Type! или \lstinline!^Type!
+    \item Спецификация тестов прямо в объявлении функции
+    \item Управление областью видимости
+    \item Программный доступ к метаданным
+    \item Не влияют на равенство (equality) значений
+    \end{itemize}
+  \item Пространства имен (namespaces)
+    \begin{itemize}
+    \item First-class objects
+    \item Используются для организации кода в библиотеки
+    \end{itemize}
+  \item Деструктуризация параметров функций и возвращаемых значений
+\begin{lstlisting}
+(let [[a b & c :as e] [1 2 3 4]] [a b c e]) 
+   ==> [1 2 (3 4) [1 2 3 4]]
+(let [{:keys [a b c] :as m :or {b 3}} {:a 5 :c 6}]
+  [a b c m]) ==> [5 3 6 {:a 5 :c 6}]
+\end{lstlisting}
+  \end{itemize}
+\end{frame}
+
+%TODO: написать во что компилируется кложурный код....
+
+\section{Взаимодействие с Java}
+
+Стоит отметить, что взаимодействие может происходить и с другими целевыми платформами,
+например, с .Net
+
+\begin{frame}[t]
+  \frametitle{Взаимодействие с Java}
+  \begin{itemize}
+  \item Двухстороннее взаимодействие с целевой платформой:
+    \begin{itemize}
+    \item Создание экземпляров классов Java -- \texttt{new} или \texttt{Class.}
+    \item Вызов кода, написанного на Java -- \texttt{.}, \texttt{..}, \texttt{doto}
+    \item Генерация классов и интерфейсов для вызова из Java -- \texttt{gen-class},
+      \texttt{gen-interface}, \texttt{proxy} (анонимный класс)
+    \end{itemize}
+  \item Возможность выполнения кода Clojure из программ на Java
+  \item Отдельные функции для работы с массивами Java
+    \begin{itemize}
+    \item \texttt{make-array} -- создание массивов
+    \item \texttt{aget}/\texttt{aset} -- доступ к элементам массивов
+    \item \texttt{amap}/\texttt{areduce} -- итерация по элементам массивов
+    \end{itemize}
+  \item \texttt{memfn} позволяет использовать функции-члены классов в \texttt{map},
+    \texttt{filter}, \ldots{}
+  \item Спец. форма \texttt{set!} для установки значений в классе
+  \item Генерация и перехват исключений -- \texttt{throw} \& \texttt{catch}
+  \end{itemize}
+\end{frame}
+
+Основными формами являются \texttt{.} и \texttt{new}, остальное добавлено для упрощения
+жизни... 
+
+\begin{frame}[fragile]
+  \frametitle{Примеры}
+  \begin{itemize}
+  \item Создание объектов:
+\begin{lstlisting}
+(new java.util.Date) <==> (java.util.Date.)
+\end{lstlisting}
+  \item Доступ к полям/функциям членам классов:
+\begin{lstlisting}
+(.substring "Hello World" 0 5) ==> "Hello"
+(. "Hello World" substring 0 5) ==> "Hello"
+Math/PI  ==> 3.141592653589793
+(Integer/parseInt "42") ==> 42
+\end{lstlisting}
+  \item \texttt{..} для связанных вызовов:
+\begin{lstlisting}
+(.. System getProperties (get "os.name")) ==> "Mac OS X"
+System.getProperties().get("os.name")
+\end{lstlisting} % Кто сказал что в лиспе больше скобок чем в яве?
+  \item \texttt{doto} -- вызов нескольких методов для одного объекта:
+\begin{lstlisting}
+(doto (java.util.HashMap.)
+ (.put "a" 1) (.put "b" 2))
+\end{lstlisting}
+  \end{itemize}
+\end{frame}
+
+% \begin{frame}
+%   \frametitle{ПрГенерация классов}
+%TODO: gen-class, gen-interface, proxy - когда что используется
+%TODO: add example of generated class? or just use proxy example?
+% \end{frame}
+
+\section{Конкурентное программирование}
+
+\begin{frame}[t,fragile]
+  \frametitle{Конкурентное программирование}
+  \begin{itemize}
+  \item Средства, обеспечивающие изменяемость данных:
+    \begin{itemize}
+    \item Ссылки (refs) -- синхронное, координированное изменение
+    \item Агенты (agents) -- асинхронное, независимое
+    \item Атомы (atoms) -- синхронное, независимое
+    \item Переменные (vars) -- изменение, локальное для нитей
+    \item \lstinline|@| (\texttt{deref}) -- используется для доступа к данным
+    \end{itemize}
+  \item Параллельное выполнение кода:
+    \begin{itemize}
+    \item futures
+    \item \texttt{pmap} \& \texttt{pcalls}
+    \item Native threads
+    \end{itemize}
+  \item Средства синхронизации -- promise
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile,t]
+  \frametitle{Ссылки \& STM}
+  \begin{itemize}
+  \item Координированное изменение данных из нескольких потоков
+  \item Software Transaction Memory обеспечивает атомарность, целостность, изоляцию
+  \item Изменения происходят только в рамках транзакции
+  \item Возможность проверки данных с помощью функции-валидатора
+  \item Возможность добавления функций-наблюдателей
+  \end{itemize}
+\begin{lstlisting}
+(def counters (ref {}))
+(defn get-counter [key]
+  (@counters key 0))
+(defn increment-counter [key]
+  (dosync
+   (alter counters assoc key 
+          (inc (@counters key 0)))))
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile,t]
+  \frametitle{Агенты}
+  \begin{itemize}
+  \item Асинхронное обновление данных -- ``fire and forget''
+  \item Пулы потоков для выполнения функций обновления данных: \texttt{send} -- для
+    ``быстрого'' обновления данных, \texttt{send-off} -- для ``тяжелых'' функций
+    (отдельный пул потоков выполнения)
+  \item \texttt{send} \& \texttt{send-off} получают функцию, которая будет применена к
+    текущему состоянию агента
+  \item Функции-валидаторы и функции-наблюдатели
+  \item Возможность ожидания окончания всех заданий агента
+  \end{itemize}
+\begin{lstlisting}
+(def acounters (agent {}))
+(defn increment-acounter [key]
+  (send acounters assoc key 
+        (inc (@counters key 0))))
+(defn get-acounter [key]
+  (@acounters key 0))
+\end{lstlisting}
+\end{frame}
+
+\begin{frame}[t,fragile]
+  \frametitle{Vars \& Атомы}
+  \begin{itemize}
+  \item Атомы
+    \begin{itemize}
+    \item Синхронное изменение данных без координации
+    \item Изменение данных производится функцией, которая применяется к текущему значению
+    \item Функция может быть вызвана несколько раз, если кто-то уже изменил значение
+    \item Функция не должна иметь побочных эффектов!
+    \end{itemize}
+  \item Vars
+    \begin{itemize}
+    \item Обеспечивают изменение данных в рамках текущего потока
+    \item \texttt{binding} связывает новые значения с символами
+    \item Изменения затрагивают все вызываемые из текущего потока функции
+    \item Будьте осторожны с ленивыми последовательностями!
+    \end{itemize}
+\begin{lstlisting}
+(def *var* 5)
+(defn foo [] *var*)
+(foo) ==> 5
+(binding [*var* 10] (foo)) ==> 10
+\end{lstlisting}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[t,fragile]
+  \frametitle{Параллельное выполнение кода}
+  \begin{itemize}
+  \item \texttt{future}
+    \begin{itemize}
+    \item выполняет заданный код в отдельном потоке
+    \item \lstinline|@| -- для доступа к результатам выполнения кода
+    \item \lstinline|@| блокирует текущий поток, если нет результатов
+    \end{itemize}
+  \item \texttt{promise}
+    \begin{itemize}
+    \item используется для синхронизации между потоками данных
+    \item \texttt{deliver} устанавливает значение
+    \item \lstinline|@| читает установленное значение или блокирует выполнение, если оно
+      не установлено
+    \end{itemize}
+  \item \texttt{pmap} \& \texttt{pcalls} -- выгодно использовать только для ``тяжелых''
+    функций обработки данных.
+  \end{itemize}
+\end{frame}
+
+\section{Clojure в реальной жизни}
+
+\begin{frame}[t]
+  \frametitle{Clojure в реальной жизни}
+  \begin{itemize}
+  \item Инфраструктура и инструментальная поддержка:
+    \begin{itemize}
+    \item Среды разработки
+    \item Средства сборки
+    \item Библиотеки
+    \item Репозитории кода
+    \end{itemize}
+  \item Clojure/core -- коммерческая поддержка, консультации и т.п.
+  \item Использование в коммерческих проектах
+  \item Источники информации
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[t]
+  \frametitle{Инфраструктура: IDE и средства сборки}
+  \begin{itemize}
+  \item Поддержка в большинстве IDE:
+  \begin{itemize}
+  \item Emacs + SLIME (самый популярный)
+  \item VimClojure
+  \item NetBeans
+  \item Eclipse
+  \item IntelliJ IDEA
+  \end{itemize}
+  \item Утилиты сборки кода:
+    \begin{itemize}
+    \item Поддержка Clojure в Maven и Ant
+    \item Leiningen -- написан на Clojure, расширяемый и очень простой в использовании
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[t]
+  \frametitle{Инфраструктура: библиотеки и репозитории}
+  \begin{itemize}
+  \item Доступ к большому набору существующих библиотек
+  \item Clojure-specific libraries:
+    \begin{itemize}
+    \item Clojure-Contrib
+    \item Compojure
+    \item ClojureQL
+    \item Incanter
+    \item и другие -- см. \url{http://clojars.org}
+    \end{itemize}
+  \item Репозитории:
+    \begin{itemize}
+    \item build.clojure.org
+    \item clojars.org
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[t]
+  \frametitle{Использование в коммерческих проектах}
+  \begin{itemize}
+  \item Зарубежные проекты:
+    \begin{itemize}
+    \item FlightCaster
+    \item ThinkRelevance
+    \item Runa
+    \item Sonian Networks
+    \item BackType
+    \item DRW Trading Group
+    \item Snowtide Informatics Systems, Inc. - проект DocuHarvest
+    \item ThorTech Solutions
+    \end{itemize}
+  \item Несколько российских стартапов используют Clojure:
+    \begin{itemize}
+    \item ООО "Моделирование и Технологии"
+    \item Security Technology Research (\url{http://setere.com})
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\section{Источники информации}
+
+\begin{frame}[t,fragile]
+  \frametitle{Источники информации}
+  \begin{itemize}
+  \item Основные:
+    \begin{itemize}
+    \item Сайт проекта -- \url{http://clojure.org}
+    \item Planet Clojure -- \url{http://planet.clojure.in}
+    \item Канал \lstinline|#clojure| на freenode.net
+    \item Проект labrepl (\url{http://github.com/relevance/labrepl}) -- учебная среда для
+      изучения языка
+    \item Try-Clojure (\url{http://www.try-clojure.org/}) -- работа с кодом используя
+      только Web-браузер
+    \end{itemize}
+  \item Русскоязычные ресурсы:
+    \begin{itemize}
+    \item Русская планета ФП -- \url{http://fprog.ru/planet/}
+    \item clojure at conference.jabber.ru
+    \item Clojure форум на \url{http://lisper.ru}
+    \item Мой сайт -- \url{http://alexott.net/ru/clojure/}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[t]
+  \frametitle{Источники информации}
+  \begin{itemize}
+  \item Книги:
+    \begin{itemize}
+    \item Programming Clojure -- 2009-й год, версия 1.0
+    \item Practical Clojure. The Definitive Guide -- 2010, версия 1.2
+    \item The Joy of Clojure (beta)
+    \item Clojure in Action (beta)
+    \item Clojure Programming on Wikibooks
+    \item Clojure Notes on RubyLearning
+    \end{itemize}
+  \item Видео-лекции и скринкасты
+  \item Группы пользователей по всему миру
+  \item Учебные курсы (пока только в США и Европе)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[t]
+  \frametitle{Спасибо за внимание}
+  \begin{columns}
+    \begin{column}{0.65\textwidth}
+\raggedleft       \Huge{\textbf{Вопросы}} 
+    \end{column}
+    \begin{column}{0.35\textwidth}
+      \pgfimage[width=3cm]{images/question3}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\end{document}
+
+%%% Local Variables: 
+%%% mode: latex
+%%% TeX-master: t
+%%% End: 
+
+% LocalWords:  Мультиметоды Метапрограммирование Lisp мультиметоды transients
+% LocalWords:  persistent Net Java sets TODO atoms agents refs vars futures STM
+% LocalWords:  pmap pcalls Native threads promise Interoperability namespaces
+% LocalWords:  destructuring BigDecimals диспатчеризации
